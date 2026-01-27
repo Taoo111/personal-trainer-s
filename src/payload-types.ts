@@ -69,6 +69,9 @@ export interface Config {
   collections: {
     users: User;
     media: Media;
+    products: Product;
+    orders: Order;
+    'product-files': ProductFile;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -78,6 +81,9 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    products: ProductsSelect<false> | ProductsSelect<true>;
+    orders: OrdersSelect<false> | OrdersSelect<true>;
+    'product-files': ProductFilesSelect<false> | ProductFilesSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -122,6 +128,11 @@ export interface UserAuthOperations {
  */
 export interface User {
   id: number;
+  roles: ('admin' | 'customer')[];
+  /**
+   * Zamówienia tego użytkownika
+   */
+  purchases?: (number | Order)[] | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -139,6 +150,103 @@ export interface User {
       }[]
     | null;
   password?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "orders".
+ */
+export interface Order {
+  id: number;
+  status: 'pending' | 'paid' | 'failed';
+  /**
+   * Łączna kwota w groszach
+   */
+  total: number;
+  /**
+   * Powiązany użytkownik (opcjonalne dla Guest Checkout)
+   */
+  orderedBy?: (number | null) | User;
+  /**
+   * Email do wysyłki plików i kontaktu
+   */
+  customerEmail: string;
+  items?:
+    | {
+        product: number | Product;
+        price: number;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * ID sesji checkout w Stripe
+   */
+  stripeSessionId?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "products".
+ */
+export interface Product {
+  id: number;
+  title: string;
+  /**
+   * URL-friendly nazwa (np. "plan-treningowy-30-dni")
+   */
+  slug: string;
+  description?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Cena w groszach (np. 9900 = 99 PLN)
+   */
+  price: number;
+  /**
+   * ID produktu w Stripe
+   */
+  stripeProductId?: string | null;
+  /**
+   * ID ceny w Stripe
+   */
+  stripePriceId?: string | null;
+  productFile: number | ProductFile;
+  image?: (number | null) | Media;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Zabezpieczone pliki produktów (PDF, ZIP)
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "product-files".
+ */
+export interface ProductFile {
+  id: number;
+  name?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -190,6 +298,18 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'media';
         value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'products';
+        value: number | Product;
+      } | null)
+    | ({
+        relationTo: 'orders';
+        value: number | Order;
+      } | null)
+    | ({
+        relationTo: 'product-files';
+        value: number | ProductFile;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -238,6 +358,8 @@ export interface PayloadMigration {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
+  roles?: T;
+  purchases?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -261,6 +383,60 @@ export interface UsersSelect<T extends boolean = true> {
  */
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  url?: T;
+  thumbnailURL?: T;
+  filename?: T;
+  mimeType?: T;
+  filesize?: T;
+  width?: T;
+  height?: T;
+  focalX?: T;
+  focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "products_select".
+ */
+export interface ProductsSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  description?: T;
+  price?: T;
+  stripeProductId?: T;
+  stripePriceId?: T;
+  productFile?: T;
+  image?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "orders_select".
+ */
+export interface OrdersSelect<T extends boolean = true> {
+  status?: T;
+  total?: T;
+  orderedBy?: T;
+  customerEmail?: T;
+  items?:
+    | T
+    | {
+        product?: T;
+        price?: T;
+        id?: T;
+      };
+  stripeSessionId?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "product-files_select".
+ */
+export interface ProductFilesSelect<T extends boolean = true> {
+  name?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
