@@ -2,18 +2,18 @@ import React from 'react'
 import './styles.css'
 
 export const metadata = {
-  description: 'A blank template using Payload in a Next.js app.',
-  title: 'Payload Blank Template',
+  title: 'TrainerPro | Profesjonalne plany treningowe i diety',
+  description:
+    'Premium plany treningowe i diety stworzone przez certyfikowanego trenera personalnego. Osiągnij swoje cele fitness z naukowo potwierdzonymi metodami.',
+  keywords: ['trener personalny', 'plan treningowy', 'dieta', 'fitness', 'transformacja'],
 }
 
 export default async function RootLayout(props: { children: React.ReactNode }) {
   const { children } = props
 
   return (
-    <html lang="en">
-      <body>
-        <main>{children}</main>
-      </body>
+    <html lang="pl">
+      <body className="min-h-screen">{children}</body>
     </html>
   )
 }
