@@ -1,0 +1,1 @@
+[FastMCP warning] could not infer client capabilities after 10 attempts. Connection may be unstable.
