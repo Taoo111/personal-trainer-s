@@ -1,0 +1,128 @@
+---
+description: Wytyczne E2E z Playwright dla Personal Trainer E-commerce
+globs: ['tests/e2e/**', 'playwright.config.ts']
+alwaysApply: false
+---
+
+## E2E Testing – Personal Trainer E-commerce
+
+### Konfiguracja Playwright
+
+- **Port aplikacji:** 3003 (`next dev --port 3003`). W `playwright.config.ts` ustaw `baseURL: 'http://localhost:3003'` i `webServer.url: 'http://localhost:3003'`.
+- **Przeglądarka:** Tylko Chromium (Desktop Chrome) – inicjalizacja wyłącznie z tym projektem.
+- **Izolacja:** Używaj browser contexts dla odseparowania środowiska testów (domyślnie Playwright tworzy nowy context na test).
+
+### Page Object Model (POM)
+
+- **Lokalizacja:** `tests/e2e/page-objects/`.
+- **Struktura:** Jedna klasa/funkcja na stronę (np. `HomePage`, `LoginPage`, `RegisterPage`, `ProductPage`).
+- **Zawartość:** Selektory i metody nawigacji/akcji (goto, fill form, click). Asercje pozostaw w plikach `*.e2e.spec.ts`.
+
+### Selektory i data-testid
+
+- Gdzie wprowadzasz nowe selektory pod testy, używaj atrybutu **`data-testid`** (np. `data-testid="login-form"`, `data-testid="register-submit"`).
+- Lokalizacja: `await page.getByTestId('nazwaSelektora')`.
+- Dla istniejących elementów możesz używać `getByRole`, `getByLabelText`, `getByText` – bez dodawania `data-testid` jeśli tekst/rola są stabilne.
+
+### Struktura testów
+
+- **Arrange, Act, Assert:** Najpierw przygotowanie (goto, dane), potem akcja (klik, wypełnienie), na końcu asercje.
+- **Hooks:** `test.beforeEach` / `test.afterEach` do setupu i teardown (np. nowy context, czyszczenie).
+- **Asercje:** Używaj konkretnych matcherów (`expect(locator).toHaveText(...)`, `toHaveURL`, `toBeVisible`).
+- **Równoległość:** Domyślnie Playwright uruchamia testy równolegle; na CI można ograniczyć `workers: 1` dla stabilności.
+
+### Narzędzia i debugowanie
+
+- **API:** `request` z Playwright do walidacji backendu (np. GET `/api/products`) – testy API w osobnych plikach lub w tym samym projekcie.
+- **Zrzuty ekranu:** `expect(page).toHaveScreenshot()` dla porównań wizualnych (opcjonalnie).
+- **Trace viewer:** Przy ponownej próbie (`trace: 'on-first-retry'`) włączony w config – po failu uruchom `pnpm exec playwright show-trace trace.zip`.
+- **Codegen:** `pnpm exec playwright codegen http://localhost:3003` – nagrywanie kroków i generowanie kodu.
+
+### Ścieżki w projekcie
+
+- Strona główna: `/`
+- Logowanie: `/login`
+- Rejestracja: `/register`
+- Panel klienta: `/dashboard` (wymaga zalogowania)
+- Produkt: `/products/[slug]`
+- Sukces checkout: `/checkout/success`
+
+### Język
+
+- Aplikacja i asercje w testach po polsku (teksty UI: "Zaloguj się", "Zarejestruj się", "Kup teraz" itd.).
+
+---
+
+## Jak testować (uruchamianie i debugowanie)
+
+### Uruchomienie testów E2E
+
+1. **Wymagania:** Działająca aplikacja na porcie 3003 (baza Postgres, zmienne z `.env`). Możesz w jednym terminalu uruchomić `pnpm dev`, w drugim testy – Playwright użyje `reuseExistingServer: true` i nie uruchomi drugiej instancji.
+
+2. **Wszystkie testy E2E:**
+
+   ```bash
+   pnpm run test:e2e
+   ```
+
+   Skrypt sam uruchomi serwer (`pnpm dev`), jeśli pod `http://localhost:3003` nic nie odpowiada.
+
+3. **Konkretny plik testów:**
+
+   ```bash
+   pnpm exec playwright test tests/e2e/homepage.e2e.spec.ts
+   ```
+
+4. **Jeden test (po nazwie):**
+
+   ```bash
+   pnpm exec playwright test -g "wyświetla poprawny tytuł"
+   ```
+
+5. **Tryb UI (krok po kroku, podgląd):**
+
+   ```bash
+   pnpm exec playwright test --ui
+   ```
+
+   Otwiera okno Playwright Test UI – wybierasz test, uruchamiasz, oglądasz wykonanie w przeglądarce.
+
+6. **Tryb headed (widoczna przeglądarka):**
+
+   ```bash
+   pnpm exec playwright test --headed
+   ```
+
+   Testy działają w widocznym oknie Chromium.
+
+7. **Debug (zatrzymanie na błędzie, DevTools):**
+
+   ```bash
+   pnpm exec playwright test --debug
+   ```
+
+   Uruchamia testy w trybie debug; przy failu zatrzymuje się i możesz użyć Playwright Inspector (krok, snapshot, selektory).
+
+8. **Codegen (nagrywanie kroków):**
+
+   ```bash
+   pnpm exec playwright codegen http://localhost:3003
+   ```
+
+   Upewnij się, że aplikacja działa na 3003. Otwiera przeglądarkę i okno z generowanym kodem – wykonujesz akcje, Playwright zapisuje selektory i komendy.
+
+9. **Raport HTML po teście:**
+
+   ```bash
+   pnpm run test:e2e
+   pnpm exec playwright show-report
+   ```
+
+   Otwiera ostatni raport HTML (screenshoty, trace, listę testów).
+
+10. **Trace przy niepowodzeniu:**  
+    W config jest `trace: 'on-first-retry'`. Po failed teście w katalogu `test-results/` pojawia się plik `trace.zip`. Otwarcie:
+    ```bash
+    pnpm exec playwright show-trace test-results/.../trace.zip
+    ```
+    (ścieżkę podaje Playwright w logu błędu). W Trace Viewer zobaczysz timeline, snapshoty, sieć, logi konsoli.
