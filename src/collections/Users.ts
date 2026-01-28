@@ -30,8 +30,21 @@ export const Users: CollectionConfig = {
   hooks: {
     beforeChange: [
       // Zabezpieczenie: tylko admin może ustawiać roles przy tworzeniu
-      ({ data, req, operation }) => {
+      async ({ data, req, operation }) => {
         if (operation === 'create') {
+          // Sprawdź czy to pierwszy użytkownik (tworzony przez /admin/create-first-user)
+          const existingUsers = await req.payload.find({
+            collection: 'users',
+            limit: 1,
+            overrideAccess: true,
+          })
+
+          // Pierwszy użytkownik dostaje rolę admin
+          if (existingUsers.totalDocs === 0) {
+            data.roles = ['admin']
+            return data
+          }
+
           // Jeśli nie admin - wymuś domyślną rolę customer
           if (!req.user?.roles?.includes('admin')) {
             data.roles = ['customer']

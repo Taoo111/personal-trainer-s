@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ShoppingCart, Loader2 } from 'lucide-react'
 import { createCheckoutSession } from '@/actions/checkout'
 
@@ -12,13 +12,36 @@ interface BuyButtonProps {
 export function BuyButton({ productId, className = '' }: BuyButtonProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [userEmail, setUserEmail] = useState<string | null>(null)
+
+  // Pobierz email zalogowanego użytkownika
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await fetch('/api/users/me', {
+          credentials: 'include',
+        })
+        if (response.ok) {
+          const data = await response.json()
+          setUserEmail(data.user?.email || null)
+        }
+      } catch {
+        // Użytkownik niezalogowany - to OK
+      }
+    }
+    fetchUser()
+  }, [])
 
   const handleClick = async () => {
     setIsLoading(true)
     setError(null)
 
     try {
-      const result = await createCheckoutSession({ productId })
+      // Przekaż email jeśli użytkownik zalogowany
+      const result = await createCheckoutSession({
+        productId,
+        customerEmail: userEmail || undefined,
+      })
 
       if (result.error) {
         setError(result.error)
