@@ -1,7 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { ShoppingCart } from 'lucide-react'
 import type { Product, Media } from '@/payload-types'
+import { BuyButton } from './BuyButton'
 
 interface ProductCardProps {
   product: Product
@@ -90,13 +90,7 @@ export function ProductCard({ product, badge }: ProductCardProps) {
           <span className="text-2xl font-bold bg-gradient-to-r from-gold to-amber bg-clip-text text-transparent">
             {formatPrice(product.price)}
           </span>
-          <Link
-            href={`/checkout?product=${product.id}`}
-            className="flex items-center gap-2 px-4 py-2 bg-secondary hover:bg-gradient-to-r hover:from-gold hover:to-amber text-foreground hover:text-background rounded-lg text-sm font-medium transition-all duration-300"
-          >
-            <ShoppingCart className="w-4 h-4" />
-            <span>Kup teraz</span>
-          </Link>
+          <BuyButton productId={product.id} />
         </div>
       </div>
     </div>
