@@ -66,6 +66,7 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
   const product = await payload.findByID({
     collection: 'products',
     id: Number(payloadProductId),
+    overrideAccess: true,
   })
 
   if (!product) {
@@ -88,6 +89,7 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
       ],
       stripeSessionId: session.id,
     },
+    overrideAccess: true,
   })
 
   // 4. Zaktualizuj zakupy użytkownika
@@ -98,6 +100,7 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
     data: {
       purchases: [...existingPurchases, order.id],
     },
+    overrideAccess: true,
   })
 
   console.log(`Order created: ${order.id} for user: ${user.email}`)
@@ -110,16 +113,18 @@ async function findOrCreateUser(
   payload: Awaited<ReturnType<typeof getPayload>>,
   email: string,
 ) {
-  // Szukaj istniejącego użytkownika
+  // Szukaj istniejącego użytkownika (z overrideAccess bo to operacja serwerowa)
   const existingUsers = await payload.find({
     collection: 'users',
     where: {
       email: { equals: email },
     },
     limit: 1,
+    overrideAccess: true, // Ważne: webhook nie ma kontekstu użytkownika
   })
 
   if (existingUsers.docs.length > 0) {
+    console.log(`Found existing user: ${email}`)
     return existingUsers.docs[0]
   }
 
@@ -133,6 +138,7 @@ async function findOrCreateUser(
       password: randomPassword,
       roles: ['customer'],
     },
+    overrideAccess: true, // Ważne: webhook nie ma kontekstu użytkownika
   })
 
   console.log(`Created new user: ${email}`)
