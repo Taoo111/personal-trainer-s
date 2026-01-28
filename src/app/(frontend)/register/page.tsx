@@ -24,8 +24,8 @@ export default function RegisterPage() {
       return
     }
 
-    if (password.length < 6) {
-      setError('Hasło musi mieć co najmniej 6 znaków')
+    if (password.length < 8) {
+      setError('Hasło musi mieć co najmniej 8 znaków')
       return
     }
 
@@ -41,7 +41,7 @@ export default function RegisterPage() {
         body: JSON.stringify({
           email,
           password,
-          roles: ['customer'],
+          // NIE wysyłaj roles z klienta - defaultValue w kolekcji ustawi 'customer'
         }),
       })
 
@@ -74,13 +74,14 @@ export default function RegisterPage() {
         setSuccess(true)
         setTimeout(() => {
           router.push('/dashboard')
-        }, 1000)
+          router.refresh()
+        }, 500)
       } else {
         // Rejestracja udana, ale logowanie nie - przekieruj do logowania
         setSuccess(true)
         setTimeout(() => {
           router.push('/login')
-        }, 1500)
+        }, 1000)
       }
     } catch (err) {
       setError('Wystąpił błąd połączenia. Spróbuj ponownie.')
@@ -153,8 +154,8 @@ export default function RegisterPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  minLength={6}
-                  placeholder="Minimum 6 znaków"
+                  minLength={8}
+                  placeholder="Minimum 8 znaków"
                   className="w-full pl-10 pr-4 py-3 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold transition-all"
                 />
               </div>

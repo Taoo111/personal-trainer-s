@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { User } from 'lucide-react'
+import { User, LogOut, LayoutDashboard, Loader2 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 const navLinks = [
   { href: '#products', label: 'Produkty' },
@@ -10,9 +11,57 @@ const navLinks = [
   { href: '#testimonials', label: 'Opinie' },
 ]
 
+interface AuthUser {
+  id: number
+  email: string
+}
+
 export function Header() {
+  const router = useRouter()
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [user, setUser] = useState<AuthUser | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
+
+  // Sprawdź stan zalogowania
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await fetch('/api/users/me', {
+          credentials: 'include',
+        })
+        if (response.ok) {
+          const data = await response.json()
+          setUser(data.user)
+        } else {
+          setUser(null)
+        }
+      } catch {
+        setUser(null)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    checkAuth()
+  }, [])
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true)
+    try {
+      await fetch('/api/users/logout', {
+        method: 'POST',
+        credentials: 'include',
+      })
+      setUser(null)
+      setIsMobileMenuOpen(false)
+      router.refresh()
+    } catch (error) {
+      console.error('Logout error:', error)
+    } finally {
+      setIsLoggingOut(false)
+    }
+  }
 
   useEffect(() => {
     const handleScroll = () => {
@@ -67,19 +116,47 @@ export function Header() {
               
               {/* Auth Links */}
               <div className="flex items-center gap-3 ml-4 pl-4 border-l border-border">
-                <Link
-                  href="/login"
-                  className="flex items-center gap-2 text-muted-foreground hover:text-gold transition-colors text-sm font-medium"
-                >
-                  <User className="w-4 h-4" />
-                  Zaloguj
-                </Link>
-                <Link
-                  href="/register"
-                  className="px-5 py-2 bg-gradient-to-r from-gold to-amber text-background text-sm font-semibold rounded-lg hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] transition-all duration-300"
-                >
-                  Dołącz
-                </Link>
+                {isLoading ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                ) : user ? (
+                  <>
+                    <Link
+                      href="/dashboard"
+                      className="flex items-center gap-2 text-muted-foreground hover:text-gold transition-colors text-sm font-medium"
+                    >
+                      <LayoutDashboard className="w-4 h-4" />
+                      Panel
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      disabled={isLoggingOut}
+                      className="flex items-center gap-2 px-4 py-2 text-muted-foreground hover:text-gold transition-colors text-sm font-medium disabled:opacity-50"
+                    >
+                      {isLoggingOut ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <LogOut className="w-4 h-4" />
+                      )}
+                      Wyloguj
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href="/login"
+                      className="flex items-center gap-2 text-muted-foreground hover:text-gold transition-colors text-sm font-medium"
+                    >
+                      <User className="w-4 h-4" />
+                      Zaloguj
+                    </Link>
+                    <Link
+                      href="/register"
+                      className="px-5 py-2 bg-gradient-to-r from-gold to-amber text-background text-sm font-semibold rounded-lg hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] transition-all duration-300"
+                    >
+                      Dołącz
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
 
@@ -156,20 +233,51 @@ export function Header() {
               opacity: isMobileMenuOpen ? 1 : 0,
             }}
           >
-            <Link
-              href="/login"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="w-full py-4 border border-border text-foreground text-lg font-semibold rounded-xl text-center hover:border-gold hover:text-gold transition-all duration-300"
-            >
-              Zaloguj się
-            </Link>
-            <Link
-              href="/register"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="w-full py-4 bg-gradient-to-r from-gold to-amber text-background text-lg font-semibold rounded-xl text-center hover:shadow-[0_0_30px_rgba(212,175,55,0.5)] transition-all duration-300"
-            >
-              Zarejestruj się
-            </Link>
+            {isLoading ? (
+              <div className="flex justify-center py-4">
+                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : user ? (
+              <>
+                <Link
+                  href="/dashboard"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="w-full py-4 bg-gradient-to-r from-gold to-amber text-background text-lg font-semibold rounded-xl text-center hover:shadow-[0_0_30px_rgba(212,175,55,0.5)] transition-all duration-300 flex items-center justify-center gap-2"
+                >
+                  <LayoutDashboard className="w-5 h-5" />
+                  Mój panel
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  disabled={isLoggingOut}
+                  className="w-full py-4 border border-border text-foreground text-lg font-semibold rounded-xl text-center hover:border-gold hover:text-gold transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {isLoggingOut ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <LogOut className="w-5 h-5" />
+                  )}
+                  Wyloguj się
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="w-full py-4 border border-border text-foreground text-lg font-semibold rounded-xl text-center hover:border-gold hover:text-gold transition-all duration-300"
+                >
+                  Zaloguj się
+                </Link>
+                <Link
+                  href="/register"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="w-full py-4 bg-gradient-to-r from-gold to-amber text-background text-lg font-semibold rounded-xl text-center hover:shadow-[0_0_30px_rgba(212,175,55,0.5)] transition-all duration-300"
+                >
+                  Zarejestruj się
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>

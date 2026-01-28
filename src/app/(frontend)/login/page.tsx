@@ -30,9 +30,11 @@ export default function LoginPage() {
 
       if (response.ok) {
         setSuccess(true)
+        // Krótsze opóźnienie + refresh dla odświeżenia stanu serwera
         setTimeout(() => {
           router.push('/dashboard')
-        }, 1000)
+          router.refresh()
+        }, 500)
       } else {
         const data = await response.json()
         if (response.status === 401) {

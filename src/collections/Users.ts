@@ -27,6 +27,20 @@ export const Users: CollectionConfig = {
       return user?.roles?.includes('admin') ?? false
     },
   },
+  hooks: {
+    beforeChange: [
+      // Zabezpieczenie: tylko admin może ustawiać roles przy tworzeniu
+      ({ data, req, operation }) => {
+        if (operation === 'create') {
+          // Jeśli nie admin - wymuś domyślną rolę customer
+          if (!req.user?.roles?.includes('admin')) {
+            data.roles = ['customer']
+          }
+        }
+        return data
+      },
+    ],
+  },
   fields: [
     {
       name: 'roles',

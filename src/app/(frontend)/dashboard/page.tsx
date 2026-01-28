@@ -31,7 +31,7 @@ export default async function DashboardPage() {
     redirect('/login')
   }
 
-  // Pobierz zamówienia użytkownika
+  // Pobierz zamówienia użytkownika (overrideAccess bo już zweryfikowaliśmy token)
   const { docs: orders } = await payload.find({
     collection: 'orders',
     where: {
@@ -40,6 +40,7 @@ export default async function DashboardPage() {
     },
     depth: 2,
     sort: '-createdAt',
+    overrideAccess: true, // Bezpieczne - użytkownik już zweryfikowany powyżej
   })
 
   return (
