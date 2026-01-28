@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Menu, X } from 'lucide-react'
+import { User } from 'lucide-react'
 
 const navLinks = [
   { href: '#products', label: 'Produkty' },
@@ -54,7 +54,7 @@ export function Header() {
             </Link>
 
             {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center gap-8">
+            <div className="hidden md:flex items-center gap-6">
               {navLinks.map((link) => (
                 <a
                   key={link.href}
@@ -64,12 +64,23 @@ export function Header() {
                   {link.label}
                 </a>
               ))}
-              <a
-                href="#products"
-                className="px-6 py-2.5 bg-gradient-to-r from-gold to-amber text-background text-sm font-semibold rounded-lg hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] transition-all duration-300"
-              >
-                Zacznij teraz
-              </a>
+              
+              {/* Auth Links */}
+              <div className="flex items-center gap-3 ml-4 pl-4 border-l border-border">
+                <Link
+                  href="/login"
+                  className="flex items-center gap-2 text-muted-foreground hover:text-gold transition-colors text-sm font-medium"
+                >
+                  <User className="w-4 h-4" />
+                  Zaloguj
+                </Link>
+                <Link
+                  href="/register"
+                  className="px-5 py-2 bg-gradient-to-r from-gold to-amber text-background text-sm font-semibold rounded-lg hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] transition-all duration-300"
+                >
+                  Dołącz
+                </Link>
+              </div>
             </div>
 
             {/* Mobile Menu Button */}
@@ -135,18 +146,31 @@ export function Header() {
               {link.label}
             </a>
           ))}
-          <a
-            href="#products"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="px-10 py-4 bg-gradient-to-r from-gold to-amber text-background text-xl font-semibold rounded-xl text-center mt-6 hover:shadow-[0_0_30px_rgba(212,175,55,0.5)] transition-all duration-300"
+          
+          {/* Mobile Auth Buttons */}
+          <div
+            className="flex flex-col gap-4 mt-8 w-full max-w-xs"
             style={{
               transitionDelay: isMobileMenuOpen ? `${150 + navLinks.length * 75}ms` : '0ms',
-              transform: isMobileMenuOpen ? 'translateY(0) scale(1)' : 'translateY(20px) scale(0.95)',
+              transform: isMobileMenuOpen ? 'translateY(0)' : 'translateY(20px)',
               opacity: isMobileMenuOpen ? 1 : 0,
             }}
           >
-            Zacznij teraz
-          </a>
+            <Link
+              href="/login"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="w-full py-4 border border-border text-foreground text-lg font-semibold rounded-xl text-center hover:border-gold hover:text-gold transition-all duration-300"
+            >
+              Zaloguj się
+            </Link>
+            <Link
+              href="/register"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="w-full py-4 bg-gradient-to-r from-gold to-amber text-background text-lg font-semibold rounded-xl text-center hover:shadow-[0_0_30px_rgba(212,175,55,0.5)] transition-all duration-300"
+            >
+              Zarejestruj się
+            </Link>
+          </div>
         </div>
       </div>
     </>
