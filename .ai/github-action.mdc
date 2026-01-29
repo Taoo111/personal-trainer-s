@@ -1,0 +1,37 @@
+---
+description: Wytyczne GitHub Actions dla Personal Trainer E-commerce
+globs: ['.github/workflows/**']
+alwaysApply: false
+---
+
+## GitHub Actions – ten projekt
+
+### Konfiguracja
+
+- **Workflow:** `.github/workflows/ci.yml` – jeden workflow CI (lint, unit, int, e2e).
+- **Skrypty:** `package.json`: `lint`, `test:unit`, `test:int`, `test:e2e`. Używaj `pnpm run <script>`.
+- **Node:** Wersja z `.nvmrc` (obecnie 20). W workflow: `node-version-file: .nvmrc`.
+- **Package manager:** pnpm 10 (`pnpm/action-setup@v4`, `version: 10`). Instalacja: `pnpm install --frozen-lockfile`.
+- **Branche:** `main` i `master` (push + pull_request).
+
+### Zmienne środowiskowe
+
+- **Lokalnie:** `.env` (nie w repo). Wzoruj się na `.env.example` (DATABASE_URL, PAYLOAD_SECRET, NEXT_PUBLIC_APP_URL itd.).
+- **CI:** `env` ustawiane na poziomie joba/kroku, nie globalnie. Sekretów nie commituj – tylko w GitHub Secrets przy deploy.
+
+### Zasady
+
+- Używaj oficjalnych akcji w wersji major (np. `actions/checkout@v4`, `actions/setup-node@v4`, `pnpm/action-setup@v4`).
+- Zależności: `pnpm install --frozen-lockfile` (odpowiednik `npm ci`).
+- Joby z bazą: `test-int` i `test-e2e` mają serwis `postgres` (Postgres 17). Zmienna: `DATABASE_URL=postgresql://postgres:postgres@localhost:5432/payload_ci`.
+- Przed testami int i E2E: uruchom migracje Payload (`pnpm payload migrate`) z odpowiednim `DATABASE_URL` i `PAYLOAD_SECRET`.
+- Artefakty: przy niepowodzeniu E2E upload `playwright-report/` i `test-results/` (retention 7 dni).
+
+### Weryfikacja akcji (opcjonalnie)
+
+- Sprawdzenie wersji akcji (major):  
+  `curl -s https://api.github.com/repos/{owner}/{repo}/releases/latest | grep '"tag_name":'`
+- Sprawdzenie, czy akcja nie jest zarchiwizowana:  
+  `curl -s https://api.github.com/repos/{owner}/{repo} | grep '"archived":'`
+- README akcji:  
+  `curl -s https://raw.githubusercontent.com/{owner}/{repo}/refs/heads/main/README.md`
