@@ -60,7 +60,7 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
   }
 
   // 1. Znajdź lub utwórz użytkownika
-  let user = await findOrCreateUser(payload, customerEmail)
+  const user = await findOrCreateUser(payload, customerEmail)
 
   // 2. Pobierz produkt
   const product = await payload.findByID({
