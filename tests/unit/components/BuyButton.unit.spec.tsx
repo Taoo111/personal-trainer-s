@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { BuyButton } from '@/components/BuyButton'
 
 const mockCreateCheckoutSession = vi.fn()
@@ -65,7 +65,13 @@ describe('BuyButton', () => {
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith('/api/users/me', { credentials: 'include' })
     })
-    fireEvent.click(screen.getByRole('button', { name: /kup teraz/i }))
+    // Poczekaj na resolve response.json() i setState (re-render), potem kliknij
+    await act(async () => {
+      await Promise.resolve()
+      await Promise.resolve()
+    })
+    const button = screen.getByRole('button', { name: /kup teraz/i })
+    fireEvent.click(button)
     await waitFor(() => {
       expect(mockCreateCheckoutSession).toHaveBeenCalledWith({
         productId: 1,

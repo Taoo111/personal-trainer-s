@@ -34,6 +34,8 @@ jobs:
   test-unit:
     name: Test (unit)
     runs-on: ubuntu-latest
+    env:
+      STRIPE_SECRET_KEY: sk_test_ci_dummy_min_32_chars_long
     steps:
       - uses: actions/checkout@v4
 
@@ -69,6 +71,7 @@ jobs:
           --health-retries 5
     env:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/payload_ci
+      STRIPE_SECRET_KEY: sk_test_ci_dummy_min_32_chars_long
     steps:
       - uses: actions/checkout@v4
 
