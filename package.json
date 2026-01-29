@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@payloadcms/db-postgres": "3.73.0",
+    "@payloadcms/email-nodemailer": "3.73.0",
     "@payloadcms/next": "3.73.0",
     "@payloadcms/richtext-lexical": "3.73.0",
     "@payloadcms/ui": "3.73.0",
@@ -31,6 +32,7 @@
     "graphql": "^16.8.1",
     "lucide-react": "^0.563.0",
     "next": "15.4.10",
+    "nodemailer": "^6.9.16",
     "payload": "3.73.0",
     "react": "19.2.1",
     "react-dom": "19.2.1",

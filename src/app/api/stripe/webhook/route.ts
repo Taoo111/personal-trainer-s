@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { getPayload } from 'payload'
 import config from '@payload-config'
+import { sendPurchaseEmail } from '@/lib/sendPurchaseEmail'
 import type Stripe from 'stripe'
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
@@ -105,8 +106,27 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
 
   console.log(`Order created: ${order.id} for user: ${user.email}`)
 
-  // TODO: Wysłać email z linkiem do pobrania pliku
-  // await sendPurchaseEmail(customerEmail, product, order)
+  // 5. Wyślij email z potwierdzeniem i linkiem do kursu
+  const productWithFile = await payload.findByID({
+    collection: 'products',
+    id: product.id,
+    depth: 2,
+    overrideAccess: true,
+  })
+  const productFile = productWithFile?.productFile
+  if (productWithFile && typeof productFile === 'object' && productFile) {
+    try {
+      await sendPurchaseEmail(payload, {
+        to: customerEmail,
+        order,
+        product: { ...productWithFile, productFile },
+      })
+      console.log(`Purchase email sent to ${customerEmail}`)
+    } catch (err) {
+      console.error('Failed to send purchase email:', err)
+      // Nie rzucamy błędu – zamówienie jest już zapisane
+    }
+  }
 }
 
 async function findOrCreateUser(
